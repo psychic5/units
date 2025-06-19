@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>단위 환산기</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .unit-selector {
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .selector-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .unit-type-select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .unit-type-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .converter-section {
+            display: none;
+            padding: 0 0 20px 0;
+        }
+        
+        .instruction {
+            background: #e3f2fd;
+            margin: 0 20px 20px 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #2196f3;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        
+        .unit-list {
+            padding: 0 20px;
+        }
+        
+        .unit-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid #e0e0e0;
+            background: white;
+        }
+        
+        .unit-row:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .unit-row.converting {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .unit-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .unit-info {
+            flex: 1;
+            margin-right: 15px;
+            min-width: 0;
+        }
+        
+        .unit-name {
+            font-weight: bold;
+            font-size: 20px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .unit-input {
+            width: 120px;
+            height: 48px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 16px;
+            text-align: center;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .unit-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .unit-input:not(:placeholder-shown) {
+            background: white;
+            border-color: #28a745;
+        }
+        
+        /* 색상 구분 */
+        .unit-row:nth-child(1) { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
+        .unit-row:nth-child(2) { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+        .unit-row:nth-child(3) { background: linear-gradient(135deg, #f1f8e9, #c8e6c9); }
+        .unit-row:nth-child(4) { background: linear-gradient(135deg, #e8f5e8, #a5d6a7); font-weight: bold; }
+        .unit-row:nth-child(5) { background: linear-gradient(135deg, #e3f2fd, #90caf9); }
+        .unit-row:nth-child(6) { background: linear-gradient(135deg, #e8eaf6, #9fa8da); }
+        .unit-row:nth-child(7) { background: linear-gradient(135deg, #f3e5f5, #ce93d8); }
+        .unit-row:nth-child(8) { background: linear-gradient(135deg, #fce4ec, #f48fb1); }
+        .unit-row:nth-child(9) { background: linear-gradient(135deg, #fff8e1, #fff176); }
+        .unit-row:nth-child(10) { background: linear-gradient(135deg, #e0f2f1, #80cbc4); }
+        
+        /* 모바일 최적화 */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .title {
+                font-size: 20px;
+            }
+            
+            .unit-name {
+                font-size: 18px;
+            }
+            
+            .unit-input {
+                width: 100px;
+                font-size: 14px;
+            }
+            
+            .unit-row {
+                padding: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .instruction {
+                font-size: 13px;
+                margin: 0 10px 15px 10px;
+            }
+            
+            .unit-list {
+                padding: 0 10px;
+            }
+        }
+        
+        /* 애니메이션 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .unit-row.pulse {
+            animation: pulse 0.3s ease-in-out;
+        }
+        
+        /* 로딩 효과 */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">🔄 단위 환산기</div>
+            <div class="subtitle">빠르고 정확한 단위 변환</div>
+        </div>
+        
+        <div class="unit-selector">
+            <div class="selector-label">단위 종류를 선택하세요</div>
+            <select class="unit-type-select" id="unitType" onchange="showConverter()">
+                <option value="">-- 단위 종류 선택 --</option>
+                <option value="length">📏 길이</option>
+                <option value="area">📐 넓이</option>
+                <option value="force">💪 힘</option>
+                <option value="pressure">🌀 압력</option>
+                <option value="weight">⚖️ 무게</option>
+                <option value="temperature">🌡️ 온도</option>
+            </select>
+        </div>
+
+        <div id="converter" class="converter-section">
+            <div class="instruction">
+                💡 <strong>사용법:</strong> 아무 입력창에나 숫자를 입력하면<br>
+                다른 모든 단위로 자동 변환됩니다!
+            </div>
+            <div id="unitList" class="unit-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const units = {
+            length: {
+                name: "길이",
+                units: {
+                    "nm": { name: "nm", icon: "🔬", factor: 0.000000001, primary: false },
+                    "mm": { name: "mm", icon: "📏", factor: 0.001, primary: false },
+                    "cm": { name: "cm", icon: "📐", factor: 0.01, primary: false },
+                    "m": { name: "m ⭐", icon: "📏", factor: 1, primary: true },
+                    "km": { name: "km", icon: "🗺️", factor: 1000, primary: false },
+                    "inch": { name: "inch", icon: "📏", factor: 0.0254, primary: false },
+                    "ft": { name: "ft", icon: "🦶", factor: 0.3048, primary: false },
+                    "yard": { name: "yard", icon: "🏃", factor: 0.9144, primary: false },
+                    "mile": { name: "mile", icon: "🚗", factor: 1609.34, primary: false },
+                    "ly": { name: "ly", icon: "⭐", factor: 9460730472580800, primary: false }
+                }
+            },
+            area: {
+                name: "넓이",
+                units: {
+                    "mm2": { name: "mm²", icon: "🔬", factor: 0.000001, primary: false },
+                    "cm2": { name: "cm²", icon: "📏", factor: 0.0001, primary: false },
+                    "m2": { name: "m² ⭐", icon: "📐", factor: 1, primary: true },
+                    "km2": { name: "km²", icon: "🗺️", factor: 1000000, primary: false },
+                    "ha": { name: "ha", icon: "🌾", factor: 10000, primary: false },
+                    "a": { name: "a", icon: "📊", factor: 100, primary: false },
+                    "pyeong": { name: "평", icon: "🏠", factor: 3.306, primary: false },
+                    "in2": { name: "in²", icon: "📏", factor: 0.00064516, primary: false },
+                    "ft2": { name: "ft²", icon: "🦶", factor: 0.092903, primary: false },
+                    "acre": { name: "acre", icon: "🌾", factor: 4046.86, primary: false }
+                }
+            },
+            force: {
+                name: "힘",
+                units: {
+                    "N": { name: "N ⭐", icon: "🔬", factor: 1, primary: true },
+                    "kN": { name: "kN", icon: "📊", factor: 1000, primary: false },
+                    "MN": { name: "MN", icon: "🏭", factor: 1000000, primary: false },
+                    "dyne": { name: "dyne", icon: "⚡", factor: 0.00001, primary: false },
+                    "kgf": { name: "kgf", icon: "⚖️", factor: 9.80665, primary: false },
+                    "gf": { name: "gf", icon: "🔬", factor: 0.00980665, primary: false },
+                    "tf": { name: "tf", icon: "🚛", factor: 9806.65, primary: false },
+                    "lbf": { name: "lbf", icon: "🇺🇸", factor: 4.44822, primary: false },
+                    "poundal": { name: "pdl", icon: "📏", factor: 0.138255, primary: false },
+                    "kip": { name: "kip", icon: "🏗️", factor: 4448.22, primary: false }
+                }
+            },
+            pressure: {
+                name: "압력",
+                units: {
+                    "Pa": { name: "Pa ⭐", icon: "🔬", factor: 1, primary: true },
+                    "kPa": { name: "kPa", icon: "📊", factor: 1000, primary: false },
+                    "MPa": { name: "MPa", icon: "🏭", factor: 1000000, primary: false },
+                    "bar": { name: "bar", icon: "🌡️", factor: 100000, primary: false },
+                    "mbar": { name: "mbar", icon: "🌤️", factor: 100, primary: false },
+                    "atm": { name: "atm", icon: "🌍", factor: 101325, primary: false },
+                    "Torr": { name: "Torr", icon: "🩺", factor: 133.322, primary: false },
+                    "mmHg": { name: "mmHg", icon: "💉", factor: 133.322, primary: false },
+                    "kgf_cm2": { name: "kgf/cm²", icon: "⚖️", factor: 98066.5, primary: false },
+                    "psi": { name: "psi", icon: "🇺🇸", factor: 6894.76, primary: false }
+                }
+            },
+            weight: {
+                name: "무게",
+                units: {
+                    "mg": { name: "mg", icon: "🔬", factor: 0.000001, primary: false },
+                    "g": { name: "g", icon: "📏", factor: 0.001, primary: false },
+                    "kg": { name: "kg ⭐", icon: "⚖️", factor: 1, primary: true },
+                    "t": { name: "t", icon: "🚛", factor: 1000, primary: false },
+                    "lb": { name: "lb", icon: "🇺🇸", factor: 0.453592, primary: false },
+                    "oz": { name: "oz", icon: "📦", factor: 0.0283495, primary: false },
+                    "geun": { name: "근", icon: "🏮", factor: 0.6, primary: false },
+                    "don": { name: "돈", icon: "🪙", factor: 0.0375, primary: false },
+                    "carat": { name: "carat", icon: "💎", factor: 0.0002, primary: false },
+                    "stone": { name: "stone", icon: "🗿", factor: 6.35029, primary: false }
+                }
+            },
+            temperature: {
+                name: "온도",
+                special: true,
+                units: {
+                    "celsius": { name: "°C ⭐", icon: "🌡️", primary: true },
+                    "fahrenheit": { name: "°F", icon: "🇺🇸", primary: false },
+                    "kelvin": { name: "K", icon: "🔬", primary: false },
+                    "rankine": { name: "°R", icon: "📊", primary: false },
+                    "reaumur": { name: "°Ré", icon: "🏛️", primary: false },
+                    "delisle": { name: "°De", icon: "📐", primary: false },
+                    "newton": { name: "°N", icon: "🍎", primary: false },
+                    "romer": { name: "°Rø", icon: "🌙", primary: false },
+                    "rokin": { name: "°Ro", icon: "⭐", primary: false },
+                    "gasmark": { name: "Gas", icon: "🔥", primary: false }
+                }
+            }
+        };
+
+        let currentlyConverting = false;
+
+        function showConverter() {
+            const unitType = document.getElementById('unitType').value;
+            const converter = document.getElementById('converter');
+            const unitList = document.getElementById('unitList');
+            
+            if (unitType) {
+                converter.style.display = 'block';
+                unitList.innerHTML = '';
+                
+                Object.entries(units[unitType].units).forEach(([key, unit]) => {
+                    const unitRow = document.createElement('div');
+                    unitRow.className = 'unit-row';
+                    
+                    unitRow.innerHTML = `
+                        <div class="unit-icon">${unit.icon}</div>
+                        <div class="unit-info">
+                            <div class="unit-name">${unit.name}</div>
+                        </div>
+                        <input type="number" class="unit-input" 
+                               data-unit="${key}" 
+                               placeholder="값 입력"
+                               inputmode="numeric"
+                               oninput="convertAll('${key}', this.value)"
+                               onfocus="highlightRow(this)"
+                               onblur="removeHighlight(this)">
+                    `;
+                    
+                    unitList.appendChild(unitRow);
+                });
+                
+                // 스크롤을 위로
+                converter.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                converter.style.display = 'none';
+            }
+        }
+
+        function highlightRow(input) {
+            input.closest('.unit-row').classList.add('converting');
+        }
+
+        function removeHighlight(input) {
+            input.closest('.unit-row').classList.remove('converting');
+        }
+
+        function convertAll(sourceUnit, sourceValue) {
+            if (currentlyConverting) return;
+            currentlyConverting = true;
+            
+            const unitType = document.getElementById('unitType').value;
+            const inputs = document.querySelectorAll('.unit-input');
+            
+            // 빈 값이면 모든 입력창 초기화
+            if (!sourceValue || isNaN(sourceValue)) {
+                inputs.forEach(input => {
+                    if (input.dataset.unit !== sourceUnit) {
+                        input.value = '';
+                    }
+                });
+                currentlyConverting = false;
+                return;
+            }
+            
+            // 변환 애니메이션
+            inputs.forEach(input => {
+                const targetUnit = input.dataset.unit;
+                if (targetUnit !== sourceUnit) {
+                    let result;
+                    
+                    if (unitType === 'temperature') {
+                        result = convertTemperature(parseFloat(sourceValue), sourceUnit, targetUnit);
+                    } else {
+                        const sourceFactor = units[unitType].units[sourceUnit].factor;
+                        const targetFactor = units[unitType].units[targetUnit].factor;
+                        result = (parseFloat(sourceValue) * sourceFactor) / targetFactor;
+                    }
+                    
+                    input.value = formatNumber(result);
+                    
+                    // 펄스 애니메이션
+                    input.closest('.unit-row').classList.add('pulse');
+                    setTimeout(() => {
+                        input.closest('.unit-row').classList.remove('pulse');
+                    }, 300);
+                }
+            });
+            
+            currentlyConverting = false;
+        }
+
+        function formatNumber(num) {
+            if (isNaN(num) || !isFinite(num)) return '';
+            
+            if (Math.abs(num) >= 1e6 || (Math.abs(num) < 0.001 && num !== 0)) {
+                return num.toExponential(3);
+            } else if (Math.abs(num) >= 1000) {
+                return num.toLocaleString('ko-KR', { 
+                    maximumFractionDigits: 3,
+                    minimumFractionDigits: 0
+                });
+            } else {
+                return num.toLocaleString('ko-KR', { 
+                    maximumFractionDigits: 6,
+                    minimumFractionDigits: 0
+                });
+            }
+        }
+
+        function convertTemperature(value, from, to) {
+            // 먼저 섭씨로 변환
+            let celsius;
+            switch (from) {
+                case 'celsius': celsius = value; break;
+                case 'fahrenheit': celsius = (value - 32) * 5/9; break;
+                case 'kelvin': celsius = value - 273.15; break;
+                case 'rankine': celsius = (value - 491.67) * 5/9; break;
+                case 'reaumur': celsius = value * 5/4; break;
+                case 'delisle': celsius = 100 - value * 2/3; break;
+                case 'newton': celsius = value * 100/33; break;
+                case 'romer': celsius = (value - 7.5) * 40/21; break;
+                case 'rokin': celsius = (value - 7.5) * 40/21; break;
+                case 'gasmark': celsius = (value * 14) + 121; break;
+                default: celsius = value;
+            }
+            
+            // 섭씨에서 목표 단위로 변환
+            switch (to) {
+                case 'celsius': return celsius;
+                case 'fahrenheit': return celsius * 9/5 + 32;
+                case 'kelvin': return celsius + 273.15;
+                case 'rankine': return celsius * 9/5 + 491.67;
+                case 'reaumur': return celsius * 4/5;
+                case 'delisle': return (100 - celsius) * 3/2;
+                case 'newton': return celsius * 33/100;
+                case 'romer': return celsius * 21/40 + 7.5;
+                case 'rokin': return celsius * 21/40 + 7.5;
+                case 'gasmark': return (celsius - 121) / 14;
+                default: return celsius;
+            }
+        }
+
+        // 터치 피드백
+        document.addEventListener('DOMContentLoaded', function() {
+            // iOS 스타일 터치 피드백
+            if ('ontouchstart' in window) {
+                document.addEventListener('touchstart', function() {}, true);
+            }
+        });
+    </script>
+</body>
+</html>
