@@ -1,4 +1,13 @@
-<!DOCTYPE html>
+@media (max-width: 380px) {
+            .unit-input {
+                width: 130px;
+                font-size: 13px;
+            }
+            
+            .unit-name {
+                font-size: 16px;
+            }
+        }<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -137,7 +146,7 @@
         }
         
         .unit-input {
-            width: 120px;
+            width: 180px;
             height: 48px;
             border: 2px solid #ddd;
             border-radius: 8px;
@@ -188,7 +197,7 @@
             }
             
             .unit-input {
-                width: 100px;
+                width: 150px;
                 font-size: 14px;
             }
             
@@ -369,9 +378,9 @@
                         <div class="unit-info">
                             <div class="unit-name">${unit.name}</div>
                         </div>
-                        <input type="number" class="unit-input" 
+                        <input type="text" class="unit-input" 
                                data-unit="${key}" 
-                               placeholder="값 입력"
+                               placeholder=""
                                inputmode="numeric"
                                oninput="convertAll('${key}', this.value)"
                                onfocus="highlightRow(this)"
@@ -442,21 +451,24 @@
         }
 
         function formatNumber(num) {
-            if (isNaN(num) || !isFinite(num)) return '';
+            // 간단한 처리로 변경
+            if (!num || isNaN(num) || !isFinite(num)) return '';
             
-            if (Math.abs(num) >= 1e6 || (Math.abs(num) < 0.001 && num !== 0)) {
-                return num.toExponential(3);
-            } else if (Math.abs(num) >= 1000) {
-                return num.toLocaleString('ko-KR', { 
-                    maximumFractionDigits: 3,
-                    minimumFractionDigits: 0
-                });
-            } else {
-                return num.toLocaleString('ko-KR', { 
-                    maximumFractionDigits: 6,
-                    minimumFractionDigits: 0
-                });
+            // 0이면 0 반환
+            if (num === 0) return '0';
+            
+            // 1억 이상은 지수 표기
+            if (Math.abs(num) >= 100000000) {
+                return num.toExponential(2);
             }
+            
+            // 0.000001 이하는 지수 표기  
+            if (Math.abs(num) < 0.000001) {
+                return num.toExponential(2);
+            }
+            
+            // 나머지는 최대 소수점 6자리로 제한
+            return Number(num.toPrecision(8)).toLocaleString('en-US');
         }
 
         function convertTemperature(value, from, to) {
